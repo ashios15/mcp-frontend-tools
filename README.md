@@ -6,15 +6,6 @@ A **Model Context Protocol (MCP)** server that gives AI assistants (Claude, Copi
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?logo=typescript)
 ![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js)
 
-## Why This Project
-
-MCP is the **hottest protocol in frontend tooling** (2025-2026). Every major platform — Figma, GitHub, Vercel, Angular — is shipping MCP servers. This project proves:
-
-- You understand how AI agents interact with developer tools via MCP
-- You can build tools that AI assistants invoke programmatically
-- You know the MCP SDK, JSON Schema for tool definitions, and stdio transport
-- You combine multiple frontend competencies into a single developer experience
-
 ## Available Tools
 
 | Tool | Description |
