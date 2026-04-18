@@ -1,0 +1,33 @@
+{
+  "name": "@ashishjoshi/mcp-frontend-tools",
+  "version": "1.0.0",
+  "description": "MCP server providing frontend development tools — Lighthouse audits, bundle analysis, component scaffolding, and accessibility checks for AI assistants",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-frontend-tools": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest",
+    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "tsx": "^4.19.0",
+    "vitest": "^3.0.0",
+    "@types/node": "^22.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "frontend",
+    "ai-tools",
+    "developer-tools"
+  ],
+  "license": "MIT"
+}
