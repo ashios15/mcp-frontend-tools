@@ -1,33 +1,75 @@
 {
-  "name": "@ashishjoshi/mcp-frontend-tools",
-  "version": "1.0.0",
-  "description": "MCP server providing frontend development tools — Lighthouse audits, bundle analysis, component scaffolding, and accessibility checks for AI assistants",
+  "name": "@ashios15/mcp-frontend-tools",
+  "version": "2.0.0",
+  "description": "Reference MCP server for frontend workflows — real axe-core audits, Playwright screenshots, bundle-budget checks, design-token diffs, Storybook story runs.",
+  "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "mcp-frontend-tools": "./dist/index.js"
+    "mcp-frontend-tools": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "dev": "tsx watch src/index.ts",
-    "test": "vitest",
-    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "inspector": "npm run build && npx @modelcontextprotocol/inspector dist/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axe-core": "^4.10.2",
+    "jsdom": "^25.0.1",
     "zod": "^3.23.0"
   },
+  "peerDependencies": {
+    "playwright": "^1.49.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "typescript": "^5.6.0",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^22.0.0",
+    "playwright": "^1.59.1",
     "tsx": "^4.19.0",
-    "vitest": "^3.0.0",
-    "@types/node": "^22.0.0"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   },
   "keywords": [
     "mcp",
     "model-context-protocol",
     "frontend",
     "ai-tools",
-    "developer-tools"
+    "developer-tools",
+    "axe",
+    "accessibility",
+    "playwright",
+    "storybook",
+    "bundle-size",
+    "design-tokens"
   ],
-  "license": "MIT"
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "author": "ashios15",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ashios15/mcp-frontend-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ashios15/mcp-frontend-tools/issues"
+  },
+  "homepage": "https://github.com/ashios15/mcp-frontend-tools#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }

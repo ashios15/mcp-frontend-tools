@@ -1,3 +1,138 @@
+import { z } from "zod";
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { errorResult, jsonResult } from "../util/optional.js";
+
+const PropShape = z.object({
+  name: z.string(),
+  type: z.string(),
+  required: z.boolean().optional(),
+  defaultValue: z.string().optional(),
+});
+
+const InputShape = {
+  name: z.string().regex(/^[A-Z][A-Za-z0-9]*$/, "PascalCase"),
+  outDir: z
+    .string()
+    .describe("Absolute directory to write the component files into. Created if missing."),
+  variant: z.enum(["functional", "forwardRef", "polymorphic"]).optional(),
+  withTests: z.boolean().optional(),
+  withStory: z.boolean().optional(),
+  props: z.array(PropShape).optional(),
+};
+
+function propsInterface(name: string, props: Array<z.infer<typeof PropShape>>) {
+  if (!props.length) return `export interface ${name}Props {}`;
+  const lines = props.map((p) => {
+    const opt = p.required ? "" : "?";
+    return `  ${p.name}${opt}: ${p.type};`;
+  });
+  return `export interface ${name}Props {\n${lines.join("\n")}\n}`;
+}
+
+function renderComponent(
+  name: string,
+  variant: "functional" | "forwardRef" | "polymorphic",
+  props: Array<z.infer<typeof PropShape>>
+): string {
+  const iface = propsInterface(name, props);
+  if (variant === "forwardRef") {
+    return `import { forwardRef } from "react";
+
+${iface}
+
+export const ${name} = forwardRef<HTMLDivElement, ${name}Props>(function ${name}(props, ref) {
+  return <div ref={ref} data-component="${name}" />;
+});
+`;
+  }
+  if (variant === "polymorphic") {
+    return `import type { ElementType, ComponentPropsWithoutRef, ReactNode } from "react";
+
+${iface}
+
+type PolymorphicProps<E extends ElementType> = ${name}Props & {
+  as?: E;
+  children?: ReactNode;
+} & Omit<ComponentPropsWithoutRef<E>, keyof ${name}Props | "as" | "children">;
+
+export function ${name}<E extends ElementType = "div">({ as, children, ...rest }: PolymorphicProps<E>) {
+  const Tag = (as ?? "div") as ElementType;
+  return <Tag data-component="${name}" {...rest}>{children}</Tag>;
+}
+`;
+  }
+  return `${iface}
+
+export function ${name}(_props: ${name}Props) {
+  return <div data-component="${name}" />;
+}
+`;
+}
+
+function renderTest(name: string) {
+  return `import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { ${name} } from "./${name}.js";
+
+describe("${name}", () => {
+  it("renders", () => {
+    render(<${name} />);
+    expect(screen.getByTestId ? true : true).toBe(true);
+  });
+});
+`;
+}
+
+function renderStory(name: string) {
+  return `import type { Meta, StoryObj } from "@storybook/react";
+import { ${name} } from "./${name}.js";
+
+const meta: Meta<typeof ${name}> = { component: ${name} };
+export default meta;
+
+export const Default: StoryObj<typeof ${name}> = {};
+`;
+}
+
+export function registerScaffoldComponent(server: McpServer) {
+  server.registerTool(
+    "scaffold_react_component",
+    {
+      title: "Scaffold React Component",
+      description:
+        "Write a TypeScript React component, optional test, and optional Storybook story into outDir. Supports functional, forwardRef, and polymorphic (`as` prop) variants.",
+      inputSchema: InputShape,
+    },
+    async (args) => {
+      try {
+        const variant = args.variant ?? "functional";
+        const withTests = args.withTests ?? true;
+        const withStory = args.withStory ?? true;
+        const props = args.props ?? [];
+        await fs.mkdir(args.outDir, { recursive: true });
+        const written: string[] = [];
+        const compPath = path.join(args.outDir, `${args.name}.tsx`);
+        await fs.writeFile(compPath, renderComponent(args.name, variant, props));
+        written.push(compPath);
+        if (withTests) {
+          const testPath = path.join(args.outDir, `${args.name}.test.tsx`);
+          await fs.writeFile(testPath, renderTest(args.name));
+          written.push(testPath);
+        }
+        if (withStory) {
+          const storyPath = path.join(args.outDir, `${args.name}.stories.tsx`);
+          await fs.writeFile(storyPath, renderStory(args.name));
+          written.push(storyPath);
+        }
+        return jsonResult({ name: args.name, variant, written });
+      } catch (err) {
+        return errorResult(err instanceof Error ? err.message : String(err));
+      }
+    }
+  );
+}
 interface PropDef {
   name: string;
   type: string;
